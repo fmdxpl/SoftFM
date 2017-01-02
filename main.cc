@@ -456,12 +456,19 @@ int main(int argc, char **argv)
         vector<int> gains = rtlsdr.get_tuner_gains();
         if (find(gains.begin(), gains.end(), lnagain) == gains.end()) {
             if (lnagain != INT_MIN + 1)
-                fprintf(stderr, "ERROR: LNA gain %.1f dB not supported by tuner\n", lnagain * 0.1);
+                fprintf(stderr, "WARNING: LNA gain %.1f dB not supported by tuner\n", lnagain * 0.1);
+
             fprintf(stderr, "Supported LNA gains: ");
             for (int g: gains)
                 fprintf(stderr, " %.1f dB ", 0.1 * g);
             fprintf(stderr, "\n");
-            exit(1);
+
+            const std::vector<int>::iterator it = std::lower_bound(gains.begin(), gains.end(), lnagain);
+            if(it == gains.end())
+                exit(1);
+
+            lnagain = *it;
+            fprintf(stderr, "WARNING: Using gain: %.1f\n", lnagain * 0.1);
         }
     }
 
